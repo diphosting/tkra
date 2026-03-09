@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAS TKR-A v2.8</title>
+    <title>KAS TKR-A v3.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #6236FF; --success: #00D68F; --bg: #060918; --glass: rgba(255,255,255,0.1); }
@@ -27,10 +27,10 @@
     <h2 style="text-align: center;">KAS TKR-A 🚀</h2>
 
     <div id="viewLogin" class="card">
-        <p style="margin-top:0; opacity:0.8;">Cek & Bayar Kas</p>
+        <p style="margin-top:0; opacity:0.8;">Cek Tabungan & Bayar Kas</p>
         <input type="text" id="inNama" placeholder="Ketik namamu (Contoh: Tobias)">
-        <button onclick="cekNama()">Lanjut</button>
-        <p style="font-size: 10px; opacity: 0.5; text-align: center; margin-top: 20px;" onclick="gView('viewAdminLogin')">Akses Bendahara</p>
+        <button onclick="window.cekNama()">LIHAT TABUNGAN ✨</button>
+        <p style="font-size: 10px; opacity: 0.5; text-align: center; margin-top: 20px;" onclick="window.gView('viewAdminLogin')">Akses Bendahara</p>
     </div>
 
     <div id="viewSiswa" class="card hidden">
@@ -44,7 +44,7 @@
     <div id="viewAdminLogin" class="card hidden">
         <h3>Login Bendahara</h3>
         <input type="password" id="pAdm" placeholder="Password">
-        <button onclick="authAdmin()">MASUK</button>
+        <button onclick="window.authAdmin()">MASUK</button>
     </div>
 
     <div id="viewAdmin" class="card hidden">
@@ -56,9 +56,8 @@
     <div id="modalPay" class="modal">
         <div class="card" style="background: white; color: black; width: 100%; max-width: 350px; text-align: center;">
             <h3 style="margin-top: 0;">Scan QRIS Shopee 📱</h3>
-            <p style="font-size: 14px; margin-bottom: 0;">Silakan bayar kas sesuai nominal minggu yang dipilih.</p>
-            <img src="https://files.catbox.moe/u9j9ry.png" class="qris-img">
-            <button onclick="closeM()">TUTUP</button>
+            <img src="https://cdn.phototourl.com/uploads/2026-03-09-b8a9ded9-66e8-4992-80f5-76b70d174128.png" class="qris-img">
+            <button onclick="window.closeM()">TUTUP</button>
         </div>
     </div>
 
@@ -78,7 +77,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const dbRef = ref(db, 'kas_data'); // Pastikan database menggunakan folder 'kas_data'
+    const dbRef = ref(db, 'kas_data');
 
     const daftarSiswa = [
         "Akhlis Tsani", "Angga Maesya Putra", "Anwarul Fahmi Ramadhani", "Arya Galih Pratama",
@@ -92,10 +91,10 @@
     ];
 
     let dataKas = {}; let curSiswa = "";
-    const HARGA_M = 5000; // Harga per minggu
-    const TARGET = 75000; // Target tabungan per anak
+    const HARGA_M = 5000;
+    const TARGET = 75000;
 
-    const cleanKey = (n) => n.replace(/[\s.]/g, "_"); // Format M__Agung
+    const cleanKey = (n) => n.replace(/[\s.]/g, "_");
 
     onValue(dbRef, (s) => {
         dataKas = s.val() || {};
@@ -110,7 +109,7 @@
     };
 
     window.showSiswa = () => {
-        gView('viewSiswa');
+        window.gView('viewSiswa');
         document.getElementById('txtUser').innerText = curSiswa;
         let html = ""; let lunasCount = 0;
         
@@ -124,7 +123,7 @@
                 <span>Minggu ${i}</span>
                 <div style="display:flex; align-items:center;">
                     <span style="color:${color}; font-weight:800; font-size:12px; margin-right:10px;">${status.toUpperCase()}</span>
-                    ${status === 'belum' ? `<button class="btn-bayar" onclick="openM()">BAYAR</button>` : ''}
+                    ${status === 'belum' ? `<button class="btn-bayar" onclick="window.openM()">BAYAR</button>` : ''}
                 </div>
             </div>`;
         }
@@ -148,7 +147,7 @@
     };
 
     window.authAdmin = () => {
-        if(document.getElementById('pAdm').value === 'bendahara123') { gView('viewAdmin'); renderAdmin(); }
+        if(document.getElementById('pAdm').value === 'bendahara123') { window.gView('viewAdmin'); renderAdmin(); }
         else { alert("Password Salah!"); }
     };
 
@@ -169,7 +168,7 @@
                 let k = cleanKey(n) + "_m" + i;
                 let s = dataKas[k] || "belum";
                 if(s==='lunas') count++;
-                btns += `<span class="status-btn" onclick="upStat('${n}', ${i}, '${s}')">${s === 'lunas' ? '✅' : '⬜'}</span>`;
+                btns += `<span class="status-btn" onclick="window.upStat('${n}', ${i}, '${s}')">${s === 'lunas' ? '✅' : '⬜'}</span>`;
             }
             return `<div class="admin-box">
                 <b style="font-size:13px;">${n}</b> <small>(Lunas: ${count})</small><br>${btns}
@@ -180,7 +179,7 @@
 
     window.upStat = (nama, m, cur) => {
         let next = cur === 'lunas' ? 'belum' : 'lunas';
-        update(dbRef, { [cleanKey(nama) + "_m" + m]: next }); // Bendahara konfirmasi manual
+        update(dbRef, { [cleanKey(nama) + "_m" + m]: next });
     };
 </script>
 </body>
