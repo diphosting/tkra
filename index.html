@@ -65,7 +65,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     // Kita arahkan ke root '/' karena data JSON kamu sepertinya ada di root
-    const dbRef = ref(db); 
+    // Tambahkan 'kas_data' di dalam kurung agar program masuk ke folder yang benar
+const dbRef = ref(db, 'kas_data');
 
     const daftarSiswa = [
         "Akhlis Tsani", "Angga Maesya Putra", "Anwarul Fahmi Ramadhani", "Arya Galih Pratama",
