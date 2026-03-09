@@ -3,35 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAS TKR-A v2.0</title>
+    <title>KAS TKR-A v2.8</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #6236FF; --success: #00D68F; --bg: #060918; }
+        :root { --primary: #6236FF; --success: #00D68F; --bg: #060918; --glass: rgba(255,255,255,0.1); }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 20px; }
-        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: none; box-sizing: border-box; }
+        .card { background: var(--glass); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: none; box-sizing: border-box; background: #eee; color: #000; }
         button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: 800; cursor: pointer; }
-        .item-minggu { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .status-lunas { color: var(--success); font-weight: bold; }
-        .status-belum { color: #8F9BB3; }
+        .progress-bar-bg { width: 100%; background: #333; height: 12px; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        .progress-bar-fill { background: var(--success); height: 100%; transition: 0.8s; width: 0%; }
+        .item-minggu { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+        .btn-bayar { background: var(--success); padding: 6px 12px; border-radius: 8px; font-size: 11px; color: white; border: none; font-weight: bold; }
         .hidden { display: none; }
-        .admin-box { background: #fff; color: #000; padding: 15px; border-radius: 15px; margin-top: 10px; font-size: 12px; }
-        .status-btn { cursor: pointer; font-size: 18px; margin-right: 5px; }
+        .admin-box { background: #fff; color: #000; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid var(--primary); }
+        .status-btn { cursor: pointer; font-size: 22px; margin-right: 5px; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .qris-img { width: 100%; max-width: 280px; border-radius: 15px; margin: 15px 0; border: 5px solid white; }
     </style>
 </head>
 <body>
 
-    <h2>KAS TKR-A 🚀</h2>
+    <h2 style="text-align: center;">KAS TKR-A 🚀</h2>
 
     <div id="viewLogin" class="card">
-        <p>Cek Tabungan Kas Siswa</p>
+        <p style="margin-top:0; opacity:0.8;">Cek Tabungan & Bayar Kas</p>
         <input type="text" id="inNama" placeholder="Ketik namamu (Contoh: Tobias)">
-        <button onclick="cekNama()">LIHAT PROGRESS ✨</button>
-        <p style="font-size: 10px; opacity: 0.5; margin-top: 15px;" onclick="gView('viewAdminLogin')">Akses Admin</p>
+        <button onclick="cekNama()">LIHAT TABUNGAN ✨</button>
+        <p style="font-size: 10px; opacity: 0.5; text-align: center; margin-top: 20px;" onclick="gView('viewAdminLogin')">Akses Bendahara</p>
     </div>
 
     <div id="viewSiswa" class="card hidden">
-        <h3 id="txtUser" style="color: var(--success);">Nama Siswa</h3>
+        <h3 id="txtUser" style="color: var(--success); margin-bottom: 5px;">Nama Siswa</h3>
+        <div id="progContainer"></div>
+        <hr style="opacity: 0.1; margin: 20px 0;">
         <div id="listMingguan"></div>
         <button onclick="location.reload()" style="background: #444; margin-top: 20px;">KEMBALI</button>
     </div>
@@ -39,13 +44,22 @@
     <div id="viewAdminLogin" class="card hidden">
         <h3>Login Bendahara</h3>
         <input type="password" id="pAdm" placeholder="Password">
-        <button onclick="authAdmin()">LOGIN</button>
+        <button onclick="authAdmin()">MASUK</button>
     </div>
 
     <div id="viewAdmin" class="card hidden">
-        <h3>Panel Bendahara</h3>
-        <div id="listAdmSiswa"></div>
+        <div id="infoSaldoTotal"></div>
+        <div id="listAdmSiswa" style="max-height: 450px; overflow-y: auto;"></div>
         <button onclick="location.reload()" style="background: #444; margin-top: 20px;">LOGOUT</button>
+    </div>
+
+    <div id="modalPay" class="modal">
+        <div class="card" style="background: white; color: black; width: 100%; max-width: 350px; text-align: center;">
+            <h3 style="margin-top: 0;">Scan QRIS Shopee 📱</h3>
+            <p style="font-size: 14px; margin-bottom: 0;">Silakan bayar kas sesuai nominal minggu yang dipilih.</p>
+            <img src="https://cdn.phototourl.com/uploads/2026-03-09-b8a9ded9-66e8-4992-80f5-76b70d174128.png" class="qris-img">
+            <button onclick="closeM()">TUTUP</button>
+        </div>
     </div>
 
 <script type="module">
@@ -64,9 +78,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    // Kita arahkan ke root '/' karena data JSON kamu sepertinya ada di root
-    // Tambahkan 'kas_data' di dalam kurung agar program masuk ke folder yang benar
-const dbRef = ref(db, 'kas_data');
+    const dbRef = ref(db, 'kas_data'); // Pastikan database menggunakan folder 'kas_data'
 
     const daftarSiswa = [
         "Akhlis Tsani", "Angga Maesya Putra", "Anwarul Fahmi Ramadhani", "Arya Galih Pratama",
@@ -80,40 +92,55 @@ const dbRef = ref(db, 'kas_data');
     ];
 
     let dataKas = {}; let curSiswa = "";
+    const HARGA_M = 5000; // Harga per minggu
+    const TARGET = 75000; // Target tabungan per anak
 
-    // FUNGSI KRUSIAL: Menyamakan format dengan JSON (Spasi/Titik jadi _)
-    const cleanKey = (name) => name.replace(/[\s.]/g, "_");
+    const cleanKey = (n) => n.replace(/[\s.]/g, "_"); // Format M__Agung
 
-    // Ambil Data Realtime
     onValue(dbRef, (s) => {
         dataKas = s.val() || {};
-        console.log("Database terkoneksi!");
+        if(!document.getElementById('viewAdmin').classList.contains('hidden')) renderAdmin();
     });
 
     window.cekNama = () => {
         const input = document.getElementById('inNama').value.trim().toLowerCase();
         const match = daftarSiswa.find(n => n.toLowerCase().includes(input));
-        if (match && input.length > 2) {
-            curSiswa = match;
-            showSiswa();
-        } else { alert("Nama tidak ditemukan / kurang lengkap!"); }
+        if (match && input.length > 2) { curSiswa = match; showSiswa(); }
+        else { alert("Nama tidak ditemukan!"); }
     };
 
     window.showSiswa = () => {
-        document.getElementById('viewLogin').classList.add('hidden');
-        document.getElementById('viewSiswa').classList.remove('hidden');
+        gView('viewSiswa');
         document.getElementById('txtUser').innerText = curSiswa;
-        let html = "";
-        for(let i=1; i<=10; i++) {
+        let html = ""; let lunasCount = 0;
+        
+        for(let i=1; i<=15; i++) {
             let k = cleanKey(curSiswa) + "_m" + i;
             let status = dataKas[k] || "belum";
+            if(status === 'lunas') lunasCount++;
+            let color = status === 'lunas' ? '#00D68F' : '#8F9BB3';
+            
             html += `<div class="item-minggu">
                 <span>Minggu ${i}</span>
-                <span class="${status === 'lunas' ? 'status-lunas' : 'status-belum'}">${status.toUpperCase()}</span>
+                <div style="display:flex; align-items:center;">
+                    <span style="color:${color}; font-weight:800; font-size:12px; margin-right:10px;">${status.toUpperCase()}</span>
+                    ${status === 'belum' ? `<button class="btn-bayar" onclick="openM()">BAYAR</button>` : ''}
+                </div>
             </div>`;
         }
+
+        const totalTabungan = lunasCount * HARGA_M;
+        const persen = Math.min(Math.floor((totalTabungan / TARGET) * 100), 100);
+        document.getElementById('progContainer').innerHTML = `
+            <p style="margin:0; font-size:14px;">Tabungan: <b>Rp${totalTabungan.toLocaleString()}</b> / Rp${TARGET.toLocaleString()}</p>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${persen}%"></div></div>
+            <p style="margin:0; font-size:11px; text-align:right;">${persen}% Progress</p>
+        `;
         document.getElementById('listMingguan').innerHTML = html;
     };
+
+    window.openM = () => document.getElementById('modalPay').style.display = 'flex';
+    window.closeM = () => document.getElementById('modalPay').style.display = 'none';
 
     window.gView = (id) => {
         document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
@@ -121,31 +148,39 @@ const dbRef = ref(db, 'kas_data');
     };
 
     window.authAdmin = () => {
-        if(document.getElementById('pAdm').value === 'bendahara123') {
-            gView('viewAdmin');
-            renderAdmin();
-        } else { alert("Salah!"); }
+        if(document.getElementById('pAdm').value === 'bendahara123') { gView('viewAdmin'); renderAdmin(); }
+        else { alert("Password Salah!"); }
     };
 
     window.renderAdmin = () => {
+        let saldoKelas = 0;
+        Object.keys(dataKas).forEach(key => { if(dataKas[key] === 'lunas') saldoKelas += HARGA_M; });
+
+        document.getElementById('infoSaldoTotal').innerHTML = `
+            <div style="background: var(--primary); color:white; padding:15px; border-radius:15px; text-align:center; margin-bottom:15px;">
+                <p style="margin:0; font-size:12px; opacity:0.8;">Total Saldo Seluruh Kelas</p>
+                <h2 style="margin:5px 0 0 0;">Rp${saldoKelas.toLocaleString()}</h2>
+            </div>
+        `;
+
         let html = daftarSiswa.map(n => {
-            let btns = "";
-            for(let i=1; i<=5; i++) {
+            let btns = ""; let count = 0;
+            for(let i=1; i<=15; i++){
                 let k = cleanKey(n) + "_m" + i;
                 let s = dataKas[k] || "belum";
-                let icon = s === 'lunas' ? '✅' : '⬜';
-                btns += `<span class="status-btn" onclick="upStat('${n}', ${i}, '${s}')">${icon}</span>`;
+                if(s==='lunas') count++;
+                btns += `<span class="status-btn" onclick="upStat('${n}', ${i}, '${s}')">${s === 'lunas' ? '✅' : '⬜'}</span>`;
             }
-            return `<div class="admin-box"><b>${n}</b><br>${btns}</div>`;
+            return `<div class="admin-box">
+                <b style="font-size:13px;">${n}</b> <small>(Lunas: ${count})</small><br>${btns}
+            </div>`;
         }).join('');
         document.getElementById('listAdmSiswa').innerHTML = html;
     };
 
     window.upStat = (nama, m, cur) => {
         let next = cur === 'lunas' ? 'belum' : 'lunas';
-        let k = cleanKey(nama) + "_m" + m;
-        update(dbRef, { [k]: next });
-        setTimeout(renderAdmin, 500); // Refresh tampilan admin
+        update(dbRef, { [cleanKey(nama) + "_m" + m]: next }); // Bendahara konfirmasi manual
     };
 </script>
 </body>
